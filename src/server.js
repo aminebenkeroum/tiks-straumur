@@ -13,7 +13,7 @@ import {
 } from "./vivenu.js";
 
 const app = express();
-const port = process.env.NODE_PORT || 8080;
+const port = process.env.PORT || 8080;
 
 app.use(
   bodyParser.json({
