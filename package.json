@@ -4,7 +4,6 @@
   "description": "Gateway for Vivenu Payments",
   "scripts": {
     "start": "node src/server.js",
-    "deploy": "node src/server.js && ngrok http --domain=liberal-primarily-bluegill.ngrok-free.app 8080",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "main": "src/index.mjs",
