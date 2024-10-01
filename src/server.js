@@ -160,11 +160,24 @@ app.get("/paystack/callback", async (req, res) => {
       return res.status(403).end();
     }
 
-    console.log("PAAID =====>", paymentRequest);
+    const startButtonTransaction = await getStartButtonTransaction(
+      paymentRequestId
+    );
 
-    const completedPaymentRequest = await completePaymentRequest(paymentId);
-    res.redirect(completedPaymentRequest.successReturnUrl);
+    if (startButtonTransaction.success) {
+      const status =
+        startButtonTransaction.data &&
+        startButtonTransaction.data.transaction &&
+        startButtonTransaction.data.transaction.status;
 
+      if (status === "successful") {
+        console.log("PAAID =====>", paymentRequest);
+        const completedPaymentRequest = await completePaymentRequest(paymentId);
+        res.redirect(completedPaymentRequest.successReturnUrl);
+      }
+    }
+
+    res.redirect(paymentRequest.failureReturnUrl);
     res.end();
   } catch (e) {
     console.error("Error handling CMI success:", e);
