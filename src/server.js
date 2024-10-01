@@ -160,9 +160,7 @@ app.get("/paystack/callback", async (req, res) => {
       return res.status(403).end();
     }
 
-    const startButtonTransaction = await getStartButtonTransaction(
-      paymentRequestId
-    );
+    const startButtonTransaction = await getStartButtonTransaction(paymentId);
 
     if (startButtonTransaction.success) {
       const status =
