@@ -38,8 +38,7 @@ async function initializeTransaction(
   cancelUrl,
   currency
 ) {
-  const url =
-    "https://api.startbutton.builditdigital.co/transaction/initialize";
+  const url = "https://api.startbutton.tech/transaction/initialize";
 
   const fields = {
     email: customerEmail,
@@ -72,7 +71,7 @@ async function initializeTransaction(
 }
 
 async function createRefund(reference, amount) {
-  const url = "https://api.startbutton.builditdigital.co/transaction/refunds";
+  const url = "https://api.startbutton.tech/transaction/refunds";
 
   const data = {
     transactionReference: reference,
@@ -98,7 +97,7 @@ async function createRefund(reference, amount) {
 }
 
 async function getStartButtonTransaction(reference) {
-  const url = `https://api.startbutton.builditdigital.co/transaction/status/${reference}`;
+  const url = `https://api.startbutton.tech/transaction/status/${reference}`;
 
   const headers = {
     Authorization: `Bearer ${SECRET_KEY_P}`,
