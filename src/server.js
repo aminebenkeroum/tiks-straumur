@@ -127,6 +127,8 @@ app.get("/pay/callback", async (req, res) => {
       return res.status(403).end();
     }
 
+    console.log("Payment Request Received => ", paymentRequest);
+
     const details = await initializeTransaction(
       paymentRequest.customer.email,
       paymentRequest.amount * 100,
