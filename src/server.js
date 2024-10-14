@@ -198,6 +198,8 @@ app.get("/paystack/failure", async (req, res) => {
     }
 
     const completedPaymentRequest = await completePaymentRequest(paymentId);
+
+    console.log("Completed", completedPaymentRequest);
     res.redirect(completedPaymentRequest.failureReturnUrl);
 
     res.end();
