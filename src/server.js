@@ -163,6 +163,8 @@ app.get("/paystack/callback", async (req, res) => {
 
     const startButtonTransaction = await getStartButtonTransaction(paymentId);
 
+    console.log("transaction => ", startButtonTransaction);
+
     if (startButtonTransaction.success) {
       const status =
         startButtonTransaction.data &&
@@ -173,8 +175,11 @@ app.get("/paystack/callback", async (req, res) => {
         console.log("PAAID =====>", paymentRequest);
         const completedPaymentRequest = await completePaymentRequest(paymentId);
         res.redirect(completedPaymentRequest.successReturnUrl);
+        res.end();
       }
     }
+
+    console.log("FAILED =====>", paymentRequest);
 
     res.redirect(paymentRequest.failureReturnUrl);
     res.end();
