@@ -171,7 +171,7 @@ app.get("/paystack/callback", async (req, res) => {
         startButtonTransaction.data.transaction &&
         startButtonTransaction.data.transaction.status;
 
-      if (status === "successful") {
+      if (status === "successful" || status === "verified") {
         console.log("PAAID =====>", paymentRequest);
         const completedPaymentRequest = await completePaymentRequest(paymentId);
         res.redirect(completedPaymentRequest.successReturnUrl);
