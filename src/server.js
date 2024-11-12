@@ -52,6 +52,8 @@ async function initializeTransaction(
     },
   };
 
+  console.log("FIELDS DEBUG", fields);
+
   try {
     const response = await axios.post(url, fields, {
       headers: {
@@ -182,31 +184,6 @@ app.get("/paystack/callback", async (req, res) => {
     console.log("FAILED =====>", paymentRequest);
 
     res.redirect(paymentRequest.failureReturnUrl);
-    res.end();
-  } catch (e) {
-    console.error("Error handling CMI success:", e);
-    res.status(500).send("Error handling CMI success");
-    res.end();
-  }
-});
-
-app.get("/paystack/failure", async (req, res) => {
-  // Get the payment Request and redirect to Vivenu
-
-  try {
-    let paymentId = req.query.paymentRequestId;
-
-    const paymentRequest = await getPaymentRequest(paymentId);
-    if (paymentRequest.status !== "NEW") {
-      console.error("payment request is already processed");
-      return res.status(403).end();
-    }
-
-    const completedPaymentRequest = await completePaymentRequest(paymentId);
-
-    console.log("Completed", completedPaymentRequest);
-    res.redirect(completedPaymentRequest.failureReturnUrl);
-
     res.end();
   } catch (e) {
     console.error("Error handling CMI success:", e);
