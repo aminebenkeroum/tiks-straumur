@@ -192,6 +192,50 @@ app.get("/paystack/callback", async (req, res) => {
   }
 });
 
+app.post("/webhook", async (req, res) => {
+  try {
+    const hash = crypto
+      .createHmac("sha512", SECRET_KEY_P)
+      .update(JSON.stringify(req.body))
+      .digest("hex");
+    if (hash == req.headers["x-startbutton-signature"]) {
+      const payload = req.body;
+      const paymentId = payload.data.transaction.transactionReference;
+      const paymentRequest = await getPaymentRequest(paymentId);
+
+      if (paymentRequest.status !== "NEW") {
+        console.error("payment request is already processed");
+        return res.status(403).end();
+      }
+
+      const startButtonTransaction = await getStartButtonTransaction(paymentId);
+
+      if (startButtonTransaction.success) {
+        const status =
+          startButtonTransaction.data &&
+          startButtonTransaction.data.transaction &&
+          startButtonTransaction.data.transaction.status;
+
+        if (status === "successful" || status === "verified") {
+          console.log("PAAID =====>", paymentRequest);
+          await completePaymentRequest(paymentId);
+          res.send(202);
+          res.end();
+        }
+      }
+    }
+
+    console.log("FAILED WEBHOOK", req.body);
+
+    res.send("WEBHOOK FAILED");
+    res.end();
+  } catch (e) {
+    console.error("Error handling Webhook success:", e);
+    res.status(500).send("Error handling Webhook success");
+    res.end();
+  }
+});
+
 app.post("/paystack/refund", async (req, res) => {
   try {
     const payload = req.body;
