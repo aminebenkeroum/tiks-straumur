@@ -230,7 +230,7 @@ app.post("/webhook", async (req, res) => {
     res.send("WEBHOOK FAILED");
     res.end();
   } catch (e) {
-    console.error("Error handling Webhook success:", e);
+    console.error("Error handling Webhook success:", req.body);
     res.status(500).send("Error handling Webhook success");
     res.end();
   }
