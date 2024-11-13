@@ -203,11 +203,6 @@ app.post("/webhook", async (req, res) => {
       const paymentId = payload.data.transaction.userTransactionReference;
       const paymentRequest = await getPaymentRequest(paymentId);
 
-      if (paymentRequest.status !== "NEW") {
-        console.error("payment request is already processed");
-        return res.status(403).end();
-      }
-
       const transactionStatus = payload.data.transaction.status;
 
       console.log("HERE TRANSACTIONS", transactionStatus, paymentRequest);
