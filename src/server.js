@@ -200,7 +200,7 @@ app.post("/webhook", async (req, res) => {
       .digest("hex");
     if (hash == req.headers["x-startbutton-signature"]) {
       const payload = req.body;
-      const paymentId = payload.data.transaction.transactionReference;
+      const paymentId = payload.data.transaction.userTransactionReference;
       const paymentRequest = await getPaymentRequest(paymentId);
 
       if (paymentRequest.status !== "NEW") {
