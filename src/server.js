@@ -219,7 +219,7 @@ app.post("/webhook", async (req, res) => {
         if (status === "successful" || status === "verified") {
           console.log("PAAID =====>", paymentRequest);
           await completePaymentRequest(paymentId);
-          res.send(202);
+          res.status(202);
           res.end();
         }
       }
