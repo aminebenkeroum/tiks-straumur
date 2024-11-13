@@ -210,6 +210,8 @@ app.post("/webhook", async (req, res) => {
 
       const startButtonTransaction = await getStartButtonTransaction(paymentId);
 
+      console.log("HERE TRANSACTIONS", startButtonTransaction, paymentRequest);
+
       if (startButtonTransaction.success) {
         const status =
           startButtonTransaction.data &&
@@ -227,7 +229,7 @@ app.post("/webhook", async (req, res) => {
 
     console.log("FAILED WEBHOOK", req.body);
 
-    res.send("WEBHOOK FAILED");
+    res.status(403).send("WEBHOOK FAILED");
     res.end();
   } catch (e) {
     console.error("Error handling Webhook success:", req.body);
