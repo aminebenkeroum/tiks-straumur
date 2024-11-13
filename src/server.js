@@ -208,22 +208,17 @@ app.post("/webhook", async (req, res) => {
         return res.status(403).end();
       }
 
-      const startButtonTransaction = await getStartButtonTransaction(paymentId);
+      const transactionStatus = payload.data.transaction.status;
 
-      console.log("HERE TRANSACTIONS", startButtonTransaction, paymentRequest);
+      console.log("HERE TRANSACTIONS", transactionStatus, paymentRequest);
 
-      if (startButtonTransaction.success) {
-        const status =
-          startButtonTransaction.data &&
-          startButtonTransaction.data.transaction &&
-          startButtonTransaction.data.transaction.status;
-
-        if (status === "successful" || status === "verified") {
-          console.log("PAAID =====>", paymentRequest);
-          await completePaymentRequest(paymentId);
-          res.status(202);
-          res.end();
-        }
+      if (
+        transactionStatus === "successful" ||
+        transactionStatus === "verified"
+      ) {
+        await completePaymentRequest(paymentId);
+        res.status(202);
+        res.end();
       }
     }
 
