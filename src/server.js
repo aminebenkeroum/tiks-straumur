@@ -46,6 +46,7 @@ async function initializeTransaction(
     redirectUrl: callbackUrl,
     reference: paymentId,
     partner: "Paystack",
+    paymentMethods: ["card"],
     currency: currency || SELLER_CURRENCY || "GHS",
     metadata: {
       cancel_action: cancelUrl,
@@ -217,7 +218,7 @@ app.post("/webhook", async (req, res) => {
       }
     }
 
-    console.log("FAILED WEBHOOK", req.body);
+    console.log("DEBUG", req.body);
 
     res.status(403).send("WEBHOOK FAILED");
     res.end();
