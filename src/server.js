@@ -160,13 +160,13 @@ app.get("/paystack/callback", async (req, res) => {
     const paymentRequest = await getPaymentRequest(paymentId);
 
     if (paymentRequest.status !== "NEW") {
-      console.error("payment request is already processed");
-      return res.status(403).end();
+      console.error("Payment request is already processed");
+      return res.status(403).send("Payment request already processed");
     }
 
     const startButtonTransaction = await getStartButtonTransaction(paymentId);
 
-    console.log("transaction => ", startButtonTransaction);
+    console.log("start button transaction => ", startButtonTransaction);
 
     if (startButtonTransaction.success) {
       const status =
@@ -177,19 +177,16 @@ app.get("/paystack/callback", async (req, res) => {
       if (status === "successful" || status === "verified") {
         console.log("PAAID =====>", paymentRequest);
         const completedPaymentRequest = await completePaymentRequest(paymentId);
-        res.redirect(completedPaymentRequest.successReturnUrl);
-        res.end();
+        return res.redirect(completedPaymentRequest.successReturnUrl);
       }
     }
 
     console.log("FAILED =====>", paymentRequest);
 
-    res.redirect(paymentRequest.failureReturnUrl);
-    res.end();
+    return res.redirect(paymentRequest.failureReturnUrl);
   } catch (e) {
     console.error("Error handling CMI success:", e);
-    res.status(500).send("Error handling CMI success");
-    res.end();
+    return res.status(500).send("Error handling CMI success");
   }
 });
 
