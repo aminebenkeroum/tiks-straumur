@@ -196,7 +196,8 @@ app.post("/webhook", async (req, res) => {
       .createHmac("sha512", SECRET_KEY_P)
       .update(JSON.stringify(req.body))
       .digest("hex");
-    if (hash == req.headers["x-startbutton-signature"]) {
+
+    if (hash === req.headers["x-startbutton-signature"]) {
       const payload = req.body;
       const paymentId = payload.data.transaction.userTransactionReference;
       const paymentRequest = await getPaymentRequest(paymentId);
@@ -210,19 +211,15 @@ app.post("/webhook", async (req, res) => {
         transactionStatus === "verified"
       ) {
         await completePaymentRequest(paymentId);
-        res.status(202);
-        res.end();
+        return res.status(202).send("Payment processed successfully");
       }
     }
 
     console.log("DEBUG", req.body);
-
-    res.status(403).send("WEBHOOK FAILED");
-    res.end();
+    return res.status(403).send("Webhook validation failed");
   } catch (e) {
-    console.error("Error handling Webhook success:", req.body);
-    res.status(500).send("Error handling Webhook success");
-    res.end();
+    console.error("Error handling Webhook:", req.body, e);
+    return res.status(500).send("Error handling Webhook");
   }
 });
 
