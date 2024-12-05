@@ -161,7 +161,12 @@ app.get("/paystack/callback", async (req, res) => {
 
     if (paymentRequest.status !== "NEW") {
       console.error("Payment request is already processed");
-      return res.status(403).send("Payment request already processed");
+
+      if (paymentRequest.successReturnUrl) {
+        return res.redirect(paymentRequest.successReturnUrl);
+      } else {
+        return res.status(403).send("Payment request already processed");
+      }
     }
 
     const startButtonTransaction = await getStartButtonTransaction(paymentId);
