@@ -254,10 +254,10 @@ app.get("/straumur/callback", async (req, res) => {
     if (paymentRequest.status !== "NEW") {
       console.error("Payment request is already processed");
 
-      if (paymentRequest.successReturnUrl) {
+      if (paymentRequest.status === "SUCCEEDED") {
         return res.redirect(paymentRequest.successReturnUrl);
       } else {
-        return res.status(403).send("Payment request already processed");
+        return res.redirect(paymentRequest.failureReturnUrl);
       }
     }
 
@@ -287,30 +287,12 @@ app.post("/webhook", async (req, res) => {
       return res.status(500).send("Webhook secret not configured");
     }
 
-    // Log webhook secret info for debugging
-    console.log("=== WEBHOOK SECRET INFO ===");
-    console.log("Webhook secret length:", WEBHOOK_SECRET.length);
-    console.log(
-      "Webhook secret first 16 chars:",
-      WEBHOOK_SECRET.substring(0, 16)
-    );
-    console.log(
-      "Webhook secret last 16 chars:",
-      WEBHOOK_SECRET.substring(WEBHOOK_SECRET.length - 16)
-    );
-    console.log("=============================");
-
     const payload = req.body;
-
-    console.log("PAYLOAD:", payload);
 
     // Extract the specific fields in the exact order required by Straumur
     const {
       checkoutReference,
-      payfacReference,
       merchantReference,
-      amount,
-      currency,
       reason,
       success,
       hmacSignature,
@@ -326,18 +308,8 @@ app.post("/webhook", async (req, res) => {
     // Calculate HMAC signature using the helper function
     const calculatedSignatures = calculateStraumurHMAC(WEBHOOK_SECRET, payload);
 
-    console.log("=== WEBHOOK VALIDATION ===");
-    console.log("Received HMAC signature:", hmacSignature);
-    console.log(
-      "Calculated HMAC signature (base64):",
-      calculatedSignatures.base64
-    );
-
     // Check if received signature matches either format
     const signaturesMatch = hmacSignature === calculatedSignatures.base64;
-
-    console.log("Signatures match:", signaturesMatch);
-    console.log("=============================");
 
     if (!signaturesMatch) {
       console.error("Invalid HMAC signature in webhook");
@@ -369,26 +341,23 @@ app.post("/webhook", async (req, res) => {
       return res.status(404).send("Payment request not found");
     }
 
+    if (paymentRequest && paymentRequest.status === "SUCCEEDED") {
+      console.log("Payment request already completed");
+      return res.status(200).send("Payment request already completed");
+    }
+
     // Handle different event types
     switch (eventType) {
       case "Authorization":
         if (success === "true") {
           console.log(`Authorization successful for payment: ${paymentId}`);
-          // Authorization means funds are reserved, but not yet captured
-          // You might want to update payment status to "AUTHORIZED" here
-          // await updatePaymentStatus(paymentId, "AUTHORIZED");
-        } else {
-          console.error(
-            `Authorization failed for payment: ${paymentId}, Reason: ${reason}`
-          );
-          // Handle failed authorization
+          // Complete the payment request
+          await completePaymentRequest(paymentId);
         }
         break;
 
       case "Capture":
         if (success === "true") {
-          console.log(`Capture successful for payment: ${paymentId}`);
-          // Capture means funds have been withdrawn from customer account
           // Complete the payment request
           await completePaymentRequest(paymentId);
         } else {
@@ -396,55 +365,6 @@ app.post("/webhook", async (req, res) => {
             `Capture failed for payment: ${paymentId}, Reason: ${reason}`
           );
           // Handle failed capture
-        }
-        break;
-
-      case "Adjustment":
-        if (success === "true") {
-          console.log(
-            `Adjustment successful for payment: ${paymentId}, New amount: ${amount} ${currency}`
-          );
-          // Handle amount adjustment (increase/decrease)
-          // You might want to update the payment amount in your system
-          // await updatePaymentAmount(paymentId, amount, currency);
-        } else {
-          console.error(
-            `Adjustment failed for payment: ${paymentId}, Reason: ${reason}`
-          );
-          // Handle failed adjustment
-        }
-        break;
-
-      case "Refund":
-        if (success === "true") {
-          console.log(
-            `Refund processed for payment: ${paymentId}, Amount: ${amount} ${currency}`
-          );
-          // Handle successful refund
-          // You might want to update payment status to "REFUNDED"
-          // await updatePaymentStatus(paymentId, "REFUNDED");
-        } else {
-          console.error(
-            `Refund failed for payment: ${paymentId}, Reason: ${reason}`
-          );
-          // Handle failed refund
-        }
-        break;
-
-      case "Tokenization":
-        if (success === "true") {
-          const token = additionalData?.token;
-          console.log(
-            `Tokenization successful for payment: ${paymentId}, Token: ${token}`
-          );
-          // Handle successful tokenization
-          // Store the token for future payments if needed
-          // await storePaymentToken(paymentId, token);
-        } else {
-          console.error(
-            `Tokenization failed for payment: ${paymentId}, Reason: ${reason}`
-          );
-          // Handle failed tokenization
         }
         break;
 
