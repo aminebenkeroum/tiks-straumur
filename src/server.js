@@ -34,7 +34,7 @@ async function initializeTransaction(
   cancelUrl,
   currency
 ) {
-  const url = "https://checkout-api.staging.straumur.is/api/v1/hostedcheckout";
+  const url = "https://greidslugatt.straumur.is/api/v1/hostedcheckout";
 
   const fields = {
     amount: Math.round(amount),
@@ -68,7 +68,7 @@ async function initializeTransaction(
 }
 
 async function getStraumurCheckoutStatus(checkoutReference) {
-  const url = `https://checkout-api.staging.straumur.is/api/v1/hostedcheckout/status/${checkoutReference}`;
+  const url = `https://greidslugatt.straumur.is/api/v1/hostedcheckout/status/${checkoutReference}`;
 
   const headers = {
     "X-API-key": `${STRAUMUR_API_KEY}`,
