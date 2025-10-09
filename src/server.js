@@ -5,7 +5,12 @@ import bodyParser from "body-parser";
 
 import "dotenv/config";
 
-import { completePaymentRequest, getPaymentRequest } from "./vivenu.js";
+import {
+  completePaymentRequest,
+  getCheckoutById,
+  getPaymentRequest,
+  getTransactionById,
+} from "./vivenu.js";
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -484,11 +489,17 @@ app.post("/payment/refund", async (req, res) => {
       amount,
       currency = "ISK",
       refundReason,
+      transactionId,
     } = payload.data;
 
-    const checkoutStatus = await getStraumurCheckoutStatus(psp);
+    const transactionDetails = await getTransactionById(transactionId);
 
-    console.log("CHECKOUT STATUS => ", checkoutStatus);
+    const checkoutId = transactionDetails.checkoutId;
+
+    const checkoutDetails = await getCheckoutById(checkoutId);
+
+    const paymentRequestId =
+      checkoutDetails.docs[0] && checkoutDetails.docs[0].paymentRequestId;
 
     if (!currency || !psp || !amount) {
       return res.status(400).send("Missing required refund parameters");
@@ -496,7 +507,7 @@ app.post("/payment/refund", async (req, res) => {
 
     // Create refund using Straumur API
     const refundResult = await createStraumurRefund(
-      merchantReference,
+      paymentRequestId,
       psp,
       amount,
       currency,
