@@ -88,6 +88,69 @@ async function getStraumurCheckoutStatus(checkoutReference) {
   }
 }
 
+/**
+ * Create a refund for a transaction (partial or full)
+ * @param {string} merchantReference - Merchant reference to uniquely identify a payment
+ * @param {string} payfacReference - Straumur reference to uniquely identify a payment
+ * @param {number} amount - The amount to be refunded in minor units
+ * @param {string} currency - The three-character ISO currency code (e.g., "ISK")
+ * @param {string} refundReason - Optional reason for refund (OTHER, RETURN, DUPLICATE, FRAUD, CUSTOMER REQUEST)
+ * @returns {Promise<Object>} Refund response
+ */
+async function createStraumurRefund(
+  merchantReference,
+  payfacReference,
+  amount,
+  currency = "ISK",
+  refundReason = null
+) {
+  const url =
+    "https://checkout-api.staging.straumur.is/api/v1/modification/refund";
+
+  const data = {
+    reference: merchantReference,
+    payfacReference: payfacReference,
+    amount: amount,
+    currency: currency,
+  };
+
+  // Add refund reason if provided and valid
+  const validRefundReasons = [
+    "OTHER",
+    "RETURN",
+    "DUPLICATE",
+    "FRAUD",
+    "CUSTOMER REQUEST",
+  ];
+  if (refundReason && validRefundReasons.includes(refundReason)) {
+    data.refundReason = refundReason;
+  }
+
+  const headers = {
+    "X-API-key": `${STRAUMUR_API_KEY}`,
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+  };
+
+  try {
+    const response = await axios.post(url, data, { headers });
+    console.log("Straumur refund created successfully:", response.data);
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(
+      "Error creating Straumur refund:",
+      error.response ? error.response.data : error.message
+    );
+    return {
+      success: false,
+      error: error.response ? error.response.data : error.message,
+    };
+  }
+}
+
 // Test function to verify our implementation matches Straumur's example
 function testStraumurExample() {
   console.log("=== TESTING STRAUMUR EXAMPLE ===");
@@ -391,6 +454,70 @@ app.post("/webhook", async (req, res) => {
   } catch (error) {
     console.error("Error processing Straumur webhook:", error);
     return res.status(500).send("Error processing webhook");
+  }
+});
+
+app.post("/payment/refund", async (req, res) => {
+  try {
+    const payload = req.body;
+
+    if (payload.type !== "payment.refund") {
+      return res.status(400).send("unsupported type");
+    }
+
+    const signature = crypto
+      .createHmac("sha256", GATEWAY_SECRET)
+      .update(req.rawBody)
+      .digest("hex");
+
+    const requestSignature = req.headers["x-vivenu-signature"];
+    const isValid = signature.toLowerCase() === requestSignature.toLowerCase();
+    if (!isValid) {
+      return res.status(400).send("invalid signature");
+    }
+
+    console.log("PAYLOAD => ", payload);
+    // Extract refund details from the payload
+    const {
+      merchantReference,
+      payfacReference,
+      amount,
+      currency = "ISK",
+      refundReason,
+    } = payload.data;
+
+    if (!merchantReference || !payfacReference || !amount) {
+      return res.status(400).send("Missing required refund parameters");
+    }
+
+    // Create refund using Straumur API
+    const refundResult = await createStraumurRefund(
+      merchantReference,
+      payfacReference,
+      amount,
+      currency,
+      refundReason
+    );
+
+    if (refundResult.success) {
+      console.log("Refund processed successfully:", refundResult.data);
+      return res.status(200).json({
+        success: true,
+        data: refundResult.data,
+      });
+    } else {
+      console.error("Refund failed:", refundResult.error);
+      return res.status(500).json({
+        success: false,
+        error: refundResult.error,
+      });
+    }
+  } catch (e) {
+    console.error("Error handling Refund:", e);
+    return res.status(500).json({
+      success: false,
+      error: e.message,
+    });
   }
 });
 
