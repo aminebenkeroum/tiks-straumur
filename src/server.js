@@ -491,6 +491,10 @@ app.post("/payment/refund", async (req, res) => {
       transactionId,
     } = payload.data;
 
+    const checkoutStatus = await getStraumurCheckoutStatus(merchantReference);
+
+    console.log("CHECKOUT STATUS => ", checkoutStatus);
+
     const transactionDetails = await getTransactionById(transactionId);
 
     const checkoutId = transactionDetails.checkoutId;
