@@ -491,10 +491,6 @@ app.post("/payment/refund", async (req, res) => {
       transactionId,
     } = payload.data;
 
-    const checkoutStatus = await getStraumurCheckoutStatus(merchantReference);
-
-    console.log("CHECKOUT STATUS => ", checkoutStatus);
-
     const transactionDetails = await getTransactionById(transactionId);
 
     const checkoutId = transactionDetails.checkoutId;
@@ -503,6 +499,10 @@ app.post("/payment/refund", async (req, res) => {
 
     const paymentRequestId =
       checkoutDetails.docs[0] && checkoutDetails.docs[0].paymentRequestId;
+
+    const checkoutStatus = await getStraumurCheckoutStatus(paymentRequestId);
+
+    console.log("CHECKOUT STATUS => ", checkoutStatus);
 
     if (!currency || !psp || !amount) {
       return res.status(400).send("Missing required refund parameters");
