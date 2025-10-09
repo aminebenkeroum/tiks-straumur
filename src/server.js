@@ -109,8 +109,7 @@ async function createStraumurRefund(
   currency = "ISK",
   refundReason = null
 ) {
-  const url =
-    "https://checkout-api.staging.straumur.is/api/v1/modification/refund";
+  const url = "https://greidslugatt.straumur.is/api/v1/modification/refund";
 
   const data = {
     reference: merchantReference,
