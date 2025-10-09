@@ -480,20 +480,20 @@ app.post("/payment/refund", async (req, res) => {
     // Extract refund details from the payload
     const {
       merchantReference,
-      payfacReference,
+      psp,
       amount,
       currency = "ISK",
       refundReason,
     } = payload.data;
 
-    if (!merchantReference || !payfacReference || !amount) {
+    if (!currency || !psp || !amount) {
       return res.status(400).send("Missing required refund parameters");
     }
 
     // Create refund using Straumur API
     const refundResult = await createStraumurRefund(
       merchantReference,
-      payfacReference,
+      psp,
       amount,
       currency,
       refundReason
