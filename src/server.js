@@ -486,6 +486,10 @@ app.post("/payment/refund", async (req, res) => {
       refundReason,
     } = payload.data;
 
+    const checkoutStatus = await getStraumurCheckoutStatus(psp);
+
+    console.log("CHECKOUT STATUS => ", checkoutStatus);
+
     if (!currency || !psp || !amount) {
       return res.status(400).send("Missing required refund parameters");
     }
